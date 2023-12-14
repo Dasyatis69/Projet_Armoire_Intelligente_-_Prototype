@@ -1,6 +1,6 @@
 class Message:
     def __init__(self, bus_channel):
-        pass
+        self.bus_channel = bus_channel
 
     def write_to_message_bus(self):
         pass
@@ -20,7 +20,7 @@ class Pole(Message):  # async can be disabled (read on confluence, assumed to be
 class Armoire:
     def __init__(self, drawer):
         self.orders = dict()
-        self.drawers = [drawer] if drawer.isinstance(drawer) else drawer if drawer.isintance(list) else []
+        self.drawers = [drawer] if drawer.isinstance(Drawer) else drawer if drawer.isintance(list) else []
         # à modifier, accepte drawer ou une liste de drawer
 
     def get_packet_list_for_order(self, order):
@@ -31,14 +31,31 @@ class Armoire:
 
 
 class Drawer:
-    def __init__(self):
-        pass
+    def __init__(self, packet):
+        self.packets = [packet] if packet.isinstance(Packet) else packet if packet.isintance(list) else []
+
+    def add_packet(self, packet):
+        self.packets.append(packet)
+        return 0
+
+    def take__out_packet(self, packet):
+        self.packets.remove(packet)
+        return 0
 
 
-# type, dimension propre (Xc, Yc, Zc), dimension réelle (Xr, Yr, Zr), position (X, Y, Z, face XY, face XZ), id (optional)
+# type, dimension propre (Xc, Yc, Zc),
+# dimension réelle (Xr, Yr, Zr),
+# position (X, Y, Z, face XY, face XZ),
+# id (optional)
 class Packet:
-    def __init__(self):
-        pass
+    def __init__(self, packet_type, absolute_dimension, reel_dimension, position, id=None):
+        self.packet_type = packet_type
+        self.absolute_dimension = absolute_dimension if absolute_dimension.isinstance(Coordinate) else ()
+        self.reel_dimension = reel_dimension if reel_dimension.isinstance(Coordinate) else ()
+        self.position = position if position.isinstance(Coordinate) and position.isposition else ()
+
+    def volume(self):
+        return self.absolute_dimension.x * self.absolute_dimension.y * self.absolute_dimension.z
 
 
 class Order:
@@ -48,13 +65,13 @@ class Order:
 
 # better struct available ?
 class Coordinate:
-    def __init__(self, x, y, z):
+    def __init__(self, x, y, z, xy=None, xz=None):
         self.x = x
         self.y = y
         self.z = z
-
-    def volume(self):
-        return self.x * self.y * self.z
+        self.xy = xy
+        self.xz = xz
+        self.isposition = True if xy is not None and xz is not None else False
 
     def rotate(self, angle, axis):  # 90, 180, -90 in each axis only (clockwise, counterclockwise, mirror as choice ?)
         pass
