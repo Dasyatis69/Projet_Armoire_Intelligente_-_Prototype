@@ -45,6 +45,13 @@ class Pole(Message):  # async can be disabled (read on confluence, assumed to be
     def get_number_of_assigned_order(self):
         return len(self.assigned_orders)
 
+    def can_palletize(self):
+        for assigned_order in self.assigned_orders:
+            if all(assigned_order):
+                return True
+            else:
+                return False
+
 
 class Armoire:
     def __init__(self, armoire_id, capacity):
@@ -88,7 +95,7 @@ class Drawer:
         else:
             return False
 
-    def take__out_packet(self, packet):
+    def take_out_packet(self, packet):
         if isinstance(packet, Packet) and packet in self.packets:
             self.packets.remove(packet)
             return True
