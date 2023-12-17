@@ -57,7 +57,17 @@ def wait_for_packet_placeholder(packet_type):  # only here for prototype, real p
 
 
 def pole_switch(poles, packet):
+    '''
+    check si le packet est dans les commmandes attribué
+    on l'aiguille vers le pôle ayant la commande ayant besoin du colis qui est le plus proche de la complétion
+    (ratio de paquet de la commande completé) s'il peut stocker le colis
 
+    sinon, on va chercher une commande qui correspond
+    et on l'attribut au pôle ayant le moins de commandes attibués et/ou le moins de colis en stock
+    et on aiguille le paquet vers ce pôle s'il peut stocker le colis, sinon rebelotte
+
+    si personne ayant besoin du colis peut le sotcker, et qu'il n'y a plus d'order ayant besoin de ce colis -> erreur
+    '''
     pass
 
 
