@@ -45,12 +45,27 @@ class Pole(Message):  # async can be disabled (read on confluence, assumed to be
     def get_number_of_assigned_order(self):
         return len(self.assigned_orders)
 
+    def is_packet_in_assigned_orders(self, packet):
+        if isinstance(packet, Packet):
+            for assigned_order in self.assigned_orders:
+                for order_packet in assigned_order.packet_list:
+                    if order_packet == packet:  # if packet has been stored and thus have a position, it will return False which is correct, we are looking for packet that we can complete in orders
+                        return True
+        return False
+
     def can_palletize(self):
         for assigned_order in self.assigned_orders:
             if all(assigned_order):
                 return True
             else:
                 return False
+
+    def get_order_completion_rate(self, order):
+        if isinstance(order, Order):
+            for assigned_order in self.assigned_orders:
+                if assigned_order == order:
+                    return sum(assigned_order.registered_packet_list) / len(assigned_order.registered_packet_list)
+        return False
 
 
 class Armoire:
@@ -136,10 +151,18 @@ class Packet:
 
 
 class Order:
-    def __init__(self, order_id, packet_ordered_list):
+    def __init__(self, order_id, packet_list):
         self.id = order_id
-        self.packet_list = packet_ordered_list  # tracking of packet position need proper upgrade
-        self.registered_packet_list = [False for i in range(len(packet_ordered_list))]
+        self.packet_list = packet_list  # tracking of packet position need proper upgrade
+        self.registered_packet_list = [False for i in range(len(packet_list))]
+
+    def __eq__(self, other):
+        if isinstance(other, Order):
+            if self.id == other.id \
+                    and self.packet_list == other.packet_list \
+                    and self.registered_packet_list == other.registered_packet_list:
+                return True
+        return False
 
     def contain_packet(self, packet):
         if isinstance(packet, Packet) and packet in self.packet_list and packet.position is None:  # packet shouldn't have position assigned at this stage, otherwise it's an anomaly
@@ -155,6 +178,37 @@ class Order:
             return False
 
 
+class OrderQueue:
+    def __init__(self):
+        self.order_list = list()
+
+    def add_order(self, order):
+        if isinstance(order, Order):
+            self.order_list.append(order)
+            return True
+        else:
+            return False
+
+    def take_out_order_from_queue(self, order):
+        if isinstance(order, Order):
+            for order_from_queue in self.order_list:
+                if order == order_from_queue:
+                    self.order_list.remove(order)
+                    return order_from_queue
+        return False
+
+    def is_packet_in_queue(self, packet, get_order=False):  # will be possible to check if packet exist in queue from future interface, thus we don't always need to get the order
+        if isinstance(packet, Packet):
+            for order in self.order_list:
+                for packet_from_order in order.packet_list:
+                    if packet == packet_from_order:
+                        if get_order:
+                            return order
+                        else:
+                            return True
+        return False
+
+
 # better struct available ?
 class Coordinate:
     def __init__(self, x, y, z, xy=None, xz=None):
@@ -163,12 +217,12 @@ class Coordinate:
         self.z = z
 
     def __eq__(self, other):
-        if self.x == other.x \
-                and self.y == other.y \
-                and self.z == other.z:
-            return True
-        else:
-            return False
+        if isinstance(other, Coordinate):
+            if self.x == other.x \
+                    and self.y == other.y \
+                    and self.z == other.z:
+                return True
+        return False
 
 
 class Position(Coordinate):
@@ -178,12 +232,12 @@ class Position(Coordinate):
         self.xz = xz
 
     def __eq__(self, other):
-        if super().__eq__(other) \
-                and self.xy == other.xy \
-                and self.xz == other.xz:
-            return True
-        else:
-            return False
+        if isinstance(other, Position):
+            if super().__eq__(other) \
+                    and self.xy == other.xy \
+                    and self.xz == other.xz:
+                return True
+        return False
 
     def rotate(self, angle, axis):  # 90, 180, -90 in each axis only (clockwise, counterclockwise, mirror as choice ?)
         pass
