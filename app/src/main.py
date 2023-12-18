@@ -1,5 +1,5 @@
 import core_classes as core
-from time import time, sleep
+from time import time#, sleep
 from random import randint
 
 
@@ -8,7 +8,7 @@ def measure_runtime(func):
         t = time()
         func()
         t = time() - t
-        print(f'{func.__name__} took {t:.10f} seconds to run')
+        print(f'{func.__name__} took {t:.5f} seconds to run')
     return wrapper
 
 
@@ -120,7 +120,7 @@ def setup():
 
 
 def wait_for_packet_placeholder(packet_type):  # only here for prototype, real packet receive ing syteme will be implemented later
-    sleep(0.1)
+    # sleep(0.1)
     return core.Packet(packet_type=packet_type,
                          absolute_dimension=core.Coordinate(0, 0, 0),
                          real_dimension=core.Coordinate(0, 0, 0))
@@ -166,11 +166,13 @@ def pole_switch(poles, order_queue, message_bus_channel, packet):
             message_bus_channel.write_message_to_bus("Error : packet doesn't belong to any known order")
             return False
 
+
 def start_palletization(pole_list):  # no need for else case since we only call if we know we can palletize
     for pole in pole_list:
         if pole.can_palletize():
             order = pole.can_palletize(get_order=True)
             return pole.palletize(order)
+
 
 def can_order_be_palletized(pole_list):
     for pole in pole_list:
@@ -184,7 +186,7 @@ def main():
     poles, order_queue, message_bus_chanel = setup()  # create poles, drawer, order_queue etc
 
     palletized_order_list_for_demo = list()
-    packet_type_list_for_demo = ['AAAA', 'BBBB', 'CCCC', 'DDDD', 'AAAA', 'EEEE', 'FFFF', 'CCCC', 'GGGG', 'HHHH', 'AAAA', 'EEEE', 'IIII', 'JJJJ']
+    packet_type_list_for_demo = ['AAAA', 'BBBB', 'CCCC', 'DDDD', 'AAAA', 'EEEE', 'FFFF', 'CCCC', 'GGGG', 'HHHH', 'AAAA', 'EEEE', 'IIII', 'JJJJ']  # 14 packets to be palettized for demo
     for packet_type in packet_type_list_for_demo:
         packet = wait_for_packet_placeholder(packet_type)  # idk how yet but when we receive a packet from message bus, placeholder function for demo purpose
         print(f'Packet of type {packet.packet_type} is waiting for redirection')
