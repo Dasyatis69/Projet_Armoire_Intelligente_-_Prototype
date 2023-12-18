@@ -45,20 +45,30 @@ class Pole(Message):  # async can be disabled (read on confluence, assumed to be
     def get_number_of_assigned_order(self):
         return len(self.assigned_orders)
 
-    def is_packet_in_assigned_orders(self, packet):
+    def is_packet_in_assigned_orders(self, packet, get_order=False):
         if isinstance(packet, Packet):
             for assigned_order in self.assigned_orders:
                 for order_packet in assigned_order.packet_list:
                     if order_packet == packet:  # if packet has been stored and thus have a position, it will return False which is correct, we are looking for packet that we can complete in orders
-                        return True
+                        if get_order:  # will return the 1st found, it's not the best choice but since other details need to be added to go beyond a prototype, it will stay like this for now
+                            return assigned_order
+                        else:
+                            return True
         return False
 
-    def can_palletize(self):
+    def can_palletize(self, get_order=False):
         for assigned_order in self.assigned_orders:
-            if all(assigned_order):
-                return True
+            if all(assigned_order.registered_packet_list):
+                if get_order:
+                    return assigned_order
+                else:
+                    return True
             else:
                 return False
+
+    def palletize(self, order):
+        self.assigned_orders.remove(order)
+        return order
 
     def get_order_completion_rate(self, order):
         if isinstance(order, Order):
@@ -66,6 +76,15 @@ class Pole(Message):  # async can be disabled (read on confluence, assumed to be
                 if assigned_order == order:
                     return sum(assigned_order.registered_packet_list) / len(assigned_order.registered_packet_list)
         return False
+
+    def add_packet(self, packet, order, position):  #temp methode for prototype
+        if isinstance(packet, Packet) and isinstance(order, Order) and isinstance(position, Position):
+            for armoire in self.armoires:
+                if armoire.add_packet(packet):
+                    order.register_packet(packet, position)
+
+                    return True
+            return False
 
 
 class Armoire:
@@ -93,6 +112,13 @@ class Armoire:
         else:
             return False  # raise error
 
+    def add_packet(self, packet):  # will change to (self, packet (rotated if needed), drawer, position)
+        for drawer in self.drawers:
+            if not drawer.is_full():
+                if drawer.add_packet(packet):
+                    return True
+        return False
+
     def send_message(self):
         pass
 
@@ -117,23 +143,26 @@ class Drawer:
         else:
             return False
 
+    def is_full(self):
+        return True if len(self.packets) == self.capacity else False
+
 
 # type, dimension propre (Xc, Yc, Zc),
 # dimension réelle (Xr, Yr, Zr),
 # position (X, Y, Z, face XY, face XZ),
 # id (optional)
 class Packet:
-    def __init__(self, packet_type, absolute_dimension, reel_dimension, position=None, id=None):
+    def __init__(self, packet_type, absolute_dimension, real_dimension, position=None, id=None):
         self.packet_type = packet_type
         self.absolute_dimension = absolute_dimension if isinstance(absolute_dimension, Coordinate) else ()
-        self.reel_dimension = reel_dimension if isinstance(reel_dimension, Coordinate) else ()
+        self.real_dimension = real_dimension if isinstance(real_dimension, Coordinate) else ()
         self.position = position if isinstance(position, Position) or position is None else ()
 
     def __eq__(self, other):
         if isinstance(other, Packet) \
                 and self.packet_type == other.packet_type \
                 and self.absolute_dimension == other.absolute_dimension \
-                and self.reel_dimension == other.reel_dimension \
+                and self.real_dimension == other.real_dimension \
                 and ((self.position is None and other.position is None) or self.position == other.position):
             return True
         else:
@@ -174,6 +203,7 @@ class Order:
         if self.contain_packet(packet):
             self.registered_packet_list[self.packet_list.index(packet)] = True
             self.packet_list[self.packet_list.index(packet)].position = position
+            print('Packet has been registered as stored')
         else:
             return False
 
@@ -182,7 +212,7 @@ class OrderQueue:
     def __init__(self):
         self.order_list = list()
 
-    def add_order(self, order):
+    def add_order(self, order):  # need to be able to add list of order too
         if isinstance(order, Order):
             self.order_list.append(order)
             return True
@@ -202,6 +232,7 @@ class OrderQueue:
             for order in self.order_list:
                 for packet_from_order in order.packet_list:
                     if packet == packet_from_order:
+
                         if get_order:
                             return order
                         else:
@@ -221,6 +252,7 @@ class Coordinate:
             if self.x == other.x \
                     and self.y == other.y \
                     and self.z == other.z:
+
                 return True
         return False
 
