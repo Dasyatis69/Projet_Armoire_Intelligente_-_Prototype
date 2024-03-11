@@ -1,6 +1,16 @@
+import atexit
+
 import core_classes as core
-from time import time#, sleep
+from time import time
 from random import randint
+import json
+
+# logging
+import logging.config
+import logging.handlers
+import pathlib
+
+logger = logging.getLogger("storage_and_palletization")
 
 
 def measure_runtime(func):
@@ -10,6 +20,17 @@ def measure_runtime(func):
         t = time() - t
         print(f'{func.__name__} took {t:.5f} seconds to run')
     return wrapper
+
+
+def setup_logging():
+    config_file = pathlib.Path("../configuration_files/logger_config.json")
+    with open(config_file) as file:
+        config = json.load(file)
+    logging.config.dictConfig(config)
+    queue_handler = logging.getHandlerByName("queue_handler")
+    if queue_handler is not None:
+        queue_handler.listener.start()
+        atexit.register(queue_handler.listener.stop)
 
 
 def setup():
@@ -181,8 +202,21 @@ def can_order_be_palletized(pole_list):
     return False
 
 
-@measure_runtime
+#@measure_runtime
 def main():
+    # logging setup
+    setup_logging()
+    logger.debug("debug msg")
+    logger.info("info msg")
+    logger.warning("warning msg")
+    logger.error("error msg")
+    logger.critical("critical msg")
+    try:
+        1/0
+    except ZeroDivisionError:
+        logger.exception("exception msg")
+
+    # sys setup
     poles, order_queue, message_bus_chanel = setup()  # create poles, drawer, order_queue etc
 
     palletized_order_list_for_demo = list()
