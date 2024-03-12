@@ -1,0 +1,71 @@
+{
+  "version": 1.0,
+  "poles": {
+    "01": {
+      "async_work": 1,
+      "armoires": {
+        "01": {
+          "capacity": 8,
+          "drawers": {
+            "01": {
+              "capacity": 8
+            },
+            "02": {
+              "capacity": 8
+            },
+            "03": {
+              "capacity": 8
+            }
+          }
+        },
+        "02": {
+          "capacity": 9,
+          "drawers": {
+            "01": {
+              "capacity": 9
+            },
+            "02": {
+              "capacity": 9
+            },
+            "03": {
+              "capacity": 9
+            }
+          }
+        }
+      }
+    },
+    "02": {
+      "async_work": 1,
+      "armoires": {
+        "01": {
+          "capacity": 10,
+          "drawers": {
+            "01": {
+              "capacity": 10
+            },
+            "02": {
+              "capacity": 10
+            },
+            "03": {
+              "capacity": 10
+            }
+          }
+        },
+        "02": {
+          "capacity": 11,
+          "drawers": {
+            "01": {
+              "capacity": 11
+            },
+            "02": {
+              "capacity": 11
+            },
+            "03": {
+              "capacity": 11
+            }
+          }
+        }
+      }
+    }
+  }
+}
