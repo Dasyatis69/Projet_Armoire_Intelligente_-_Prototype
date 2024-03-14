@@ -20,7 +20,7 @@ def format_id(id: int, id_type: str) -> str:
         return str(id).zfill(ID_CONFIG["drawer_id_length"])
 
 
-def load_config_from_file(json_config_link) -> core.Pole | None:
+def load_config_from_file(json_config_link) -> list[core.Pole] | None:
     global pole_id_counter
     global armoire_id_counter
     global drawer_id_counter
