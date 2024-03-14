@@ -28,7 +28,7 @@ def load_config_from_file(json_config_link) -> list[core.Pole] | None:
     with open(json_config_link, "r") as json_file:
         config = json.load(json_file)
         poles = []
-        invalID_CONFIG = False
+        invalid_config = False
 
         if config.get("version") == 1.0:
             # pole
@@ -52,20 +52,20 @@ def load_config_from_file(json_config_link) -> list[core.Pole] | None:
                                                 poles[pole_id_counter - 1].armoires[armoire_id_counter - 1].add_drawer(core.Drawer(drawer, dict_path_armoire_as_root["drawers"][drawer]["capacity"]))
                                                 drawer_id_counter += 1
                                             else:
-                                                invalID_CONFIG = True
+                                                invalid_config = True
                                                 break
                                     else:
-                                        invalID_CONFIG = True
+                                        invalid_config = True
                                         break
                                 armoire_id_counter += 1
                                 drawer_id_counter = 1
                         pole_id_counter += 1
                         armoire_id_counter = 1
                     else:
-                        invalID_CONFIG = True
+                        invalid_config = True
                         break
 
-    if not invalID_CONFIG:
+    if not invalid_config:
         return poles
     else:
         return None
