@@ -1,4 +1,5 @@
 import core_classes as core
+import config
 from time import time#, sleep
 from random import randint
 
@@ -79,44 +80,48 @@ def setup():
 
     # orders should be palletized in order : 1, 3, 2
 
-    poles = list()
-    last_armoire_id = 0
-    last_drawer_id = 0
-    for i in range(2):
-        poles.append(core.Pole(pole_id=str(i).zfill(4)))
-        for j in range(2):
-            poles[i].add_armoire(core.Armoire(str(j + last_armoire_id).zfill(4), randint(6, 9)))
-            for k in range(3):
-                poles[i].armoires[j].add_drawer(core.Drawer(str(k + last_drawer_id).zfill(4), randint(27, 35)))
-            last_drawer_id += 3
-        last_armoire_id += 2
+    # Manual setup (1st iteration)
+    # pole_1 = (core.Pole(pole_id='0001')
+    #           .add_armoire([core.Armoire('0001', 6)
+    #                        .add_drawer([core.Drawer('0001', 27),
+    #                                     core.Drawer('0002', 30),
+    #                                     core.Drawer('0003', 25)],
+    #                                    setup=True),
+    #                         core.Armoire('0002', 7)
+    #                        .add_drawer([core.Drawer('0004', 31),
+    #                                     core.Drawer('0005', 32),
+    #                                     core.Drawer('0006', 28)],
+    #                                    setup=True)]))
+    # pole_2 = (core.Pole(pole_id='0002')
+    #           .add_armoire([core.Armoire('0003', 8)
+    #                        .add_drawer([core.Drawer('0007', 27),
+    #                                     core.Drawer('0008', 30),
+    #                                     core.Drawer('0009', 25)],
+    #                                    setup=True),
+    #                         core.Armoire('0004', 9)
+    #                        .add_drawer([core.Drawer('0010', 31),
+    #                                     core.Drawer('0011', 32),
+    #                                     core.Drawer('0012', 28)],
+    #                                    setup=True)]))
+    # return [pole_1, pole_2]
+
+    # Manual setup (2nd iteration, for demo) :
+    # poles = list()
+    # last_armoire_id = 0
+    # last_drawer_id = 0
+    # for i in range(2):
+    #     poles.append(core.Pole(pole_id=str(i).zfill(4)))
+    #     for j in range(2):
+    #         poles[i].add_armoire(core.Armoire(str(j + last_armoire_id).zfill(4), randint(6, 9)))
+    #         for k in range(3):
+    #             poles[i].armoires[j].add_drawer(core.Drawer(str(k + last_drawer_id).zfill(4), randint(27, 35)))
+    #         last_drawer_id += 3
+    #     last_armoire_id += 2
+
+    # New setup (3rd iteration, through config file) :
+    poles = config.load_config_from_file('../configuration_files/sys_config.json')
+
     return poles, order_queue, message_bus
-
-
-# def setup():
-#     pole_1 = (core.Pole(pole_id='0001')
-#               .add_armoire([core.Armoire('0001', 6)
-#                            .add_drawer([core.Drawer('0001', 27),
-#                                         core.Drawer('0002', 30),
-#                                         core.Drawer('0003', 25)],
-#                                        setup=True),
-#                             core.Armoire('0002', 7)
-#                            .add_drawer([core.Drawer('0004', 31),
-#                                         core.Drawer('0005', 32),
-#                                         core.Drawer('0006', 28)],
-#                                        setup=True)]))
-#     pole_2 = (core.Pole(pole_id='0002')
-#               .add_armoire([core.Armoire('0003', 8)
-#                            .add_drawer([core.Drawer('0007', 27),
-#                                         core.Drawer('0008', 30),
-#                                         core.Drawer('0009', 25)],
-#                                        setup=True),
-#                             core.Armoire('0004', 9)
-#                            .add_drawer([core.Drawer('0010', 31),
-#                                         core.Drawer('0011', 32),
-#                                         core.Drawer('0012', 28)],
-#                                        setup=True)]))
-#     return pole_1, pole_2
 
 
 def wait_for_packet_placeholder(packet_type):  # only here for prototype, real packet receive ing syteme will be implemented later
@@ -185,18 +190,21 @@ def can_order_be_palletized(pole_list):
 def main():
     poles, order_queue, message_bus_chanel = setup()  # create poles, drawer, order_queue etc
 
-    palletized_order_list_for_demo = list()
-    packet_type_list_for_demo = ['AAAA', 'BBBB', 'CCCC', 'DDDD', 'AAAA', 'EEEE', 'FFFF', 'CCCC', 'GGGG', 'HHHH', 'AAAA', 'EEEE', 'IIII', 'JJJJ']  # 14 packets to be palettized for demo
-    for packet_type in packet_type_list_for_demo:
-        packet = wait_for_packet_placeholder(packet_type)  # idk how yet but when we receive a packet from message bus, placeholder function for demo purpose
-        print(f'Packet of type {packet.packet_type} is waiting for redirection')
-        pole_switch(poles, order_queue, message_bus_chanel, packet)
-        print(f'pole_switch finished')
-        print(f'can palletize : {can_order_be_palletized(poles)}')
-        if can_order_be_palletized(poles):
-            palletized_order_list_for_demo.append(start_palletization(poles))
-            print(f'List of palettized order : {[order.id for order in palletized_order_list_for_demo]}')
-        print('\n')
+    config.display_config(poles)
+
+    if config.display_config(poles, check_only=True):
+        palletized_order_list_for_demo = list()
+        packet_type_list_for_demo = ['AAAA', 'BBBB', 'CCCC', 'DDDD', 'AAAA', 'EEEE', 'FFFF', 'CCCC', 'GGGG', 'HHHH', 'AAAA', 'EEEE', 'IIII', 'JJJJ']  # 14 packets to be palettized for demo
+        for packet_type in packet_type_list_for_demo:
+            packet = wait_for_packet_placeholder(packet_type)  # idk how yet but when we receive a packet from message bus, placeholder function for demo purpose
+            print(f'Packet of type {packet.packet_type} is waiting for redirection')
+            pole_switch(poles, order_queue, message_bus_chanel, packet)
+            print(f'pole_switch finished')
+            print(f'can palletize : {can_order_be_palletized(poles)}')
+            if can_order_be_palletized(poles):
+                palletized_order_list_for_demo.append(start_palletization(poles))
+                print(f'List of palettized order : {[order.id for order in palletized_order_list_for_demo]}')
+            print('\n')
     return 0
 
 
