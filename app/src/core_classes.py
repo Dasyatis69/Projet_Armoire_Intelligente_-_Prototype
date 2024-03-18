@@ -259,7 +259,7 @@ class Packet:
                 and self.packet_type == other.packet_type \
                 and self.absolute_dimension == other.absolute_dimension \
                 and self.real_dimension == other.real_dimension \
-                and ((self.stored_position is None and other.position is None) or self.stored_position == other.position):
+                and ((self.stored_position is None and other.stored_position is None) or self.stored_position == other.stored_position):
             return True
         else:
             return False
