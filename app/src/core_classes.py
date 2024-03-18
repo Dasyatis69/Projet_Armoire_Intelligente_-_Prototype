@@ -13,6 +13,9 @@ class Coordinate:
                 return True
         return False
 
+    def __repr__(self):
+        return f'{self.x}x{self.y}'
+
 
 class Position(Coordinate):
     def __init__(self, x: int, y: int, z: int, xy: int, xz: int):  # xy and xz are the number of the corresponding faces (0...5)
@@ -38,6 +41,9 @@ class Position(Coordinate):
                 return False
         else:
             raise ValueError('Invalid parameter')
+
+    def __repr__(self):
+        return f'{self.x}x{self.y}x{self.z} xy:{self.xy} xz:{self.xz}'
 
 
 class Message:
@@ -118,6 +124,10 @@ class Pole(Message):  # async can be disabled (read on confluence, assumed to be
 
     def palletize(self, order):
         self.assigned_orders.remove(order)
+        for packet in order.packet_list:
+            for armoire in self.armoires:
+                for drawer in armoire.drawers:
+                    drawer.take_out_packet(packet)
         return order
 
     def get_order_completion_rate(self, order):
@@ -125,16 +135,25 @@ class Pole(Message):  # async can be disabled (read on confluence, assumed to be
             for assigned_order in self.assigned_orders:
                 if assigned_order == order:
                     return sum(assigned_order.registered_packet_list) / len(assigned_order.registered_packet_list)
-        return False
+        else:
+            raise ValueError('Invalid order parameter')
 
     def add_packet(self, packet, order, coordinate):  # not complete ?
         if isinstance(packet, Packet) and isinstance(order, Order) and isinstance(coordinate, Coordinate):
             for armoire in self.armoires:
-                if armoire.add_packet(packet):
+                if armoire.add_packet(packet, coordinate):
                     order.register_packet(packet, coordinate)
-
                     return True
             return False
+
+    def find_suitable_position(self, packet):  # not complete
+        if isinstance(packet, Packet):
+            for armoire in self.armoires:
+                suitable_position = armoire.find_suitable_position(packet)
+                if suitable_position is not None:
+                    return suitable_position
+        else:
+            raise ValueError('Invalid packet parameter')
 
 
 class Armoire:
@@ -165,12 +184,21 @@ class Armoire:
         else:
             return False  # raise error
 
-    def add_packet(self, packet):  # will change to (self, packet (rotated if needed), drawer, position)
+    def add_packet(self, packet, coordinate):
         for drawer in self.drawers:
-            if not drawer.is_full():
-                if drawer.add_packet(packet):
-                    return True
+            if drawer.add_packet(packet, coordinate):
+                return True
         return False
+
+    def find_suitable_position(self, packet):
+        for drawer in self.drawers:
+            suitable_position = drawer.find_suitable_position(packet)
+            if suitable_position is not None:
+                return suitable_position
+        return None
+
+
+
 
 
 class Drawer:
@@ -192,34 +220,44 @@ class Drawer:
         self.packets = []
 
     def find_suitable_position(self, packet) -> Coordinate | None:  # to complete
-        if isinstance(packet, Packet):
-            padded_dimension = packet.get_padded_dimension(self.margin, self.safety_margin)
-            if (self.get_drawer_area() - self.get_used_area() > padded_dimension.x * padded_dimension.y
-                    and packet.real_dimension.z < self.height):
-                # for position in (padded_dimension, packet.rotate('x', self.margin, self.safety_margin), packet.rotate('y', self.margin, self.safety_margin), packet.rotate('z', self.margin, self.safety_margin)):
-                for stored_packet in self.packets:
-                    for x in range(self.length - padded_dimension.x):
-                        for y in range(self.width - padded_dimension.y):
-                            if not (stored_packet.stored_position.x < x < stored_packet.stored_position.x + padded_dimension.x
-                                    and stored_packet.stored_position.y < y < stored_packet.stored_position.y + padded_dimension.y
+        padded_dimension = packet.get_padded_dimension(self.margin, self.safety_margin)
+        if (self.get_drawer_area() - self.get_used_area() > padded_dimension.x * padded_dimension.y
+                and packet.real_dimension.z < self.height):
+            # for position in (padded_dimension, packet.rotate('x', self.margin, self.safety_margin), packet.rotate('y', self.margin, self.safety_margin), packet.rotate('z', self.margin, self.safety_margin)):
+            if len(self.packets) != 0:
+                for x in range(self.length - padded_dimension.x):
+                    for y in range(self.width - padded_dimension.y):
+                        temp_bool = True
+                        for stored_packet in self.packets:
+                            if not (stored_packet.stored_position.x <= x <= stored_packet.stored_position.x + stored_packet.padded_dimension.x
+                                    and stored_packet.stored_position.y <= y <= stored_packet.stored_position.y + stored_packet.padded_dimension.y
                                     or
-                                    stored_packet.stored_position.x < x + padded_dimension.x < stored_packet.stored_position.x + stored_packet.padded_dimension.x
-                                    and stored_packet.stored_position.y < y + padded_dimension.y < stored_packet.stored_position.y + stored_packet.padded_dimension.y):
-                                packet.padded_dimension = padded_dimension
-                                return Coordinate(x, y)
+                                    stored_packet.stored_position.x <= x + padded_dimension.x <= stored_packet.stored_position.x + stored_packet.padded_dimension.x
+                                    and stored_packet.stored_position.y <= y + padded_dimension.y <= stored_packet.stored_position.y + stored_packet.padded_dimension.y
+                                    and x + padded_dimension.x < self.length
+                                    and y + padded_dimension.y < self.width):
+                                temp_bool &= True
                             else:
-                                continue
-            return None  # not enough space or no suitable place found
-        else:
-            raise ValueError('Invalid parameter')
+                                temp_bool &= False
+                        if temp_bool:
+                            packet.padded_dimension = padded_dimension
+                            return Coordinate(x, y)
+                        else:
+                            continue
+            else:
+                packet.padded_dimension = padded_dimension
+                return Coordinate(0, 0)
+        return None  # not enough space or no suitable place found
 
     def add_packet(self, packet, coordinate):
         packet.stored_position = coordinate
         self.packets.append(packet)
+        return True
 
     def take_out_packet(self, packet):
-        if isinstance(packet, Packet) and packet in self.packets:
-            self.packets.remove(packet)
+        if isinstance(packet, Packet):
+            if packet in self.packets:
+                self.packets.remove(packet)
         else:
             raise ValueError('Invalid parameter')
 
@@ -237,7 +275,7 @@ class Drawer:
 class Packet:
     def __init__(self, packet_type, absolute_dimension, real_dimension, ko_face=(1, 5), xy_rotation_enabled=True, yz_rotation_enabled=True, zx_rotation_enabled=True):
         if not (isinstance(packet_type, str)
-                and isinstance(absolute_dimension, Coordinate)
+                and isinstance(absolute_dimension, Position)
                 and (isinstance(real_dimension, Position) or real_dimension is None)
                 and isinstance(ko_face, tuple)
                 and type(xy_rotation_enabled) is bool
@@ -283,9 +321,9 @@ class Packet:
             return False
 
     def get_padded_dimension(self, margin: int, safety_margin: float):
-        return Position(self.real_dimension.x + 2 * margin * safety_margin,
-                        self.real_dimension.y + 2 * margin * safety_margin,
-                        self.real_dimension.z + 2 * margin * safety_margin,
+        return Position(round(self.real_dimension.x + 2 * margin * safety_margin),
+                        round(self.real_dimension.y + 2 * margin * safety_margin),
+                        round(self.real_dimension.z + 2 * margin * safety_margin),
                         self.real_dimension.xy,
                         self.real_dimension.xz)
 

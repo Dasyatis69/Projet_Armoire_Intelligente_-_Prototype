@@ -2,7 +2,7 @@
   "version": 1.0,
   "poles": {
     "01": {
-      "async_work": 1,
+      "async_work": true,
       "armoires": {
         "01": {
           "capacity": 8,
@@ -59,7 +59,7 @@
       }
     },
     "02": {
-      "async_work": 1,
+      "async_work": true,
       "armoires": {
         "01": {
           "capacity": 10,

@@ -98,14 +98,14 @@ def display_config(poles: list[core.Pole] | None, check_only: bool = False) -> b
             print('\n--- Current configuration ---')
             for pole in poles:
                 print(f"pole : {pole.id}")
-                print(f"--async_work : {pole.async_work}")
+                print(f"-- async_work : {pole.async_work}")
                 for armoire in pole.armoires:
-                    print(f"--armoire : {armoire.id}")
-                    print(f"--|-capacity : {armoire.capacity}")
+                    print(f"-- armoire : {armoire.id}")
+                    print(f"--|- capacity : {armoire.capacity}")
                     for drawer in armoire.drawers:
-                        print(f"--|-drawer : {drawer.id}")
-                        print(f"--|-|-dimension : {drawer.length}x{drawer.width}x{drawer.height}")
-                        print(f"--|-|-margin / safety_maring : {drawer.margin} / {drawer.safety_margin}")
+                        print(f"--|- drawer : {drawer.id}")
+                        print(f"--|-|- dimension : {drawer.length}x{drawer.width}x{drawer.height}")
+                        print(f"--|-|- margin|safety_maring : {drawer.margin}|{drawer.safety_margin}")
             print()
         return True
     else:
