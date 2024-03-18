@@ -48,8 +48,18 @@ def load_config_from_file(json_config_link) -> list[core.Pole] | None:
                                     dict_path_armoire_as_root = dict_path_pole_as_root["armoires"][armoire]  # same as before
                                     if dict_path_armoire_as_root.get("drawers") is not None and dict_path_armoire_as_root["drawers"].keys() != []:
                                         for drawer in dict_path_armoire_as_root["drawers"].keys():
-                                            if check_valid_id(drawer, "drawer") and dict_path_armoire_as_root["drawers"][drawer].get("capacity", None) is not None:
-                                                poles[pole_id_counter - 1].armoires[armoire_id_counter - 1].add_drawer(core.Drawer(drawer, dict_path_armoire_as_root["drawers"][drawer]["capacity"]))
+                                            if (check_valid_id(drawer, "drawer")
+                                                    and dict_path_armoire_as_root["drawers"][drawer].get("length", None) is not None
+                                                    and dict_path_armoire_as_root["drawers"][drawer].get("width", None) is not None
+                                                    and dict_path_armoire_as_root["drawers"][drawer].get("height", None) is not None
+                                                    and dict_path_armoire_as_root["drawers"][drawer].get("margin", None) is not None
+                                                    and dict_path_armoire_as_root["drawers"][drawer].get("safety_margin", None) is not None):
+                                                poles[pole_id_counter - 1].armoires[armoire_id_counter - 1].add_drawer(core.Drawer(drawer,
+                                                                                                                                   dict_path_armoire_as_root["drawers"][drawer]["length"],
+                                                                                                                                   dict_path_armoire_as_root["drawers"][drawer]["width"],
+                                                                                                                                   dict_path_armoire_as_root["drawers"][drawer]["height"],
+                                                                                                                                   dict_path_armoire_as_root["drawers"][drawer]["margin"],
+                                                                                                                                   dict_path_armoire_as_root["drawers"][drawer]["safety_margin"]))
                                                 drawer_id_counter += 1
                                             else:
                                                 invalid_config = True
@@ -94,7 +104,8 @@ def display_config(poles: list[core.Pole] | None, check_only: bool = False) -> b
                     print(f"--|-capacity : {armoire.capacity}")
                     for drawer in armoire.drawers:
                         print(f"--|-drawer : {drawer.id}")
-                        print(f"--|-|-capacity : {drawer.capacity}")
+                        print(f"--|-|-dimension : {drawer.length}x{drawer.width}x{drawer.height}")
+                        print(f"--|-|-margin / safety_maring : {drawer.margin} / {drawer.safety_margin}")
             print()
         return True
     else:

@@ -8,13 +8,25 @@
           "capacity": 8,
           "drawers": {
             "01": {
-              "capacity": 8
+              "length": 500,
+              "width": 300,
+              "height": 100,
+              "margin": 10,
+              "safety_margin": 1.1
             },
             "02": {
-              "capacity": 8
+              "length": 500,
+              "width": 300,
+              "height": 100,
+              "margin": 10,
+              "safety_margin": 1.1
             },
             "03": {
-              "capacity": 8
+              "length": 500,
+              "width": 300,
+              "height": 100,
+              "margin": 10,
+              "safety_margin": 1.1
             }
           }
         },
@@ -22,13 +34,25 @@
           "capacity": 9,
           "drawers": {
             "01": {
-              "capacity": 9
+              "length": 500,
+              "width": 300,
+              "height": 100,
+              "margin": 10,
+              "safety_margin": 1.1
             },
             "02": {
-              "capacity": 9
+              "length": 500,
+              "width": 300,
+              "height": 100,
+              "margin": 10,
+              "safety_margin": 1.1
             },
             "03": {
-              "capacity": 9
+              "length": 500,
+              "width": 300,
+              "height": 100,
+              "margin": 10,
+              "safety_margin": 1.1
             }
           }
         }
@@ -41,13 +65,25 @@
           "capacity": 10,
           "drawers": {
             "01": {
-              "capacity": 10
+              "length": 550,
+              "width": 280,
+              "height": 150,
+              "margin": 12,
+              "safety_margin": 1.1
             },
             "02": {
-              "capacity": 10
+              "length": 550,
+              "width": 280,
+              "height": 150,
+              "margin": 12,
+              "safety_margin": 1.1
             },
             "03": {
-              "capacity": 10
+              "length": 550,
+              "width": 280,
+              "height": 150,
+              "margin": 12,
+              "safety_margin": 1.1
             }
           }
         },
@@ -55,13 +91,25 @@
           "capacity": 11,
           "drawers": {
             "01": {
-              "capacity": 11
+              "length": 550,
+              "width": 280,
+              "height": 150,
+              "margin": 12,
+              "safety_margin": 1.1
             },
             "02": {
-              "capacity": 11
+              "length": 550,
+              "width": 280,
+              "height": 150,
+              "margin": 12,
+              "safety_margin": 1.1
             },
             "03": {
-              "capacity": 11
+              "length": 550,
+              "width": 280,
+              "height": 150,
+              "margin": 12,
+              "safety_margin": 1.1
             }
           }
         }
